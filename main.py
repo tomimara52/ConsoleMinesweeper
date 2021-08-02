@@ -9,6 +9,13 @@ class MineField:
         self.plant_bombs()
         self.assign_numbers()
         
+    def __str__(self):
+        _str = ''
+        for row in self.grid:
+            for char in row:
+                _str += str(char) + ' '
+            _str += '\n'
+        return _str
         
     def plant_bombs(self):
         bombs_planted = 0
