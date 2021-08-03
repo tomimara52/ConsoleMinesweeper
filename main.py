@@ -1,5 +1,7 @@
 from random import randint
+import os
 import re
+from time import sleep
 
 
 class MineField:
@@ -80,7 +82,40 @@ class MineField:
                 self.grid[row][column] = neighbor_bombs
                 
 
+def print_help():
+    print('――――― Console Minesweeper ―――――')
+    print('To dig in a spot, input the row\nand the column you want to dig in.')
+    print('For example, if I wanted to dig\nin the row 2, column 4, I would\ntype: 2,4')
+    print('―――――――――――――――――――――――――――――――――')
+    print('If you just want to mark a spot\nwhere you know is a bomb, type the\ncoordinates followed with an "m".\nExample: 1,4m')
+    print('\n')
+    
+
+def play(field):
+    os.system('cls' if os.name == 'nt' else 'clear')
+    move = 'h'
+    while True:
+        os.system('cls' if os.name == 'nt' else 'clear')
+        print(field)
+
+        pattern = re.compile(r"^[0-9]+,[0-9]+m?$")
         
+        
+        if move == 'h':
+            print_help()
+        elif move == 'q':
+            print('Bye!')
+            break
+        elif re.fullmatch(pattern, move):
+                row, column= [int(i) for i in move.strip('m').split(',')]
+                if (row > field.size) |( column > field.size):
+                    print('Invalid coordinates')
+                else:
+                    print('Valid coordinates')
+        else:
+            print('Invalid input')
+        
+        move = input("Your move ('h' for help, 'q' to quit): ")
         
 hola = MineField(5, 10)
-print(hola)
+play(hola)
