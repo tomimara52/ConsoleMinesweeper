@@ -1,4 +1,5 @@
 from random import randint
+import re
 
 
 class MineField:
@@ -10,8 +11,16 @@ class MineField:
         self.assign_numbers()
         
     def __str__(self):
-        _str = ''
-        for row in self.grid:
+        _str = '   '
+        
+        for i in range(self.size):
+            _str += str(i+1) + ' '
+        _str += '\n'
+        
+        _str += ' ' + '―' * (self.size * 2 + 3) + '\n'
+        
+        for i, row in enumerate(self.grid, 1):
+            _str += str(i) + '| '
             for char in row:
                 _str += str(char) + ' '
             _str += '\n'
@@ -69,8 +78,9 @@ class MineField:
                             neighbor_bombs += 1
                             
                 self.grid[row][column] = neighbor_bombs
+                
+
         
         
-hola = MineField(5, 10);
+hola = MineField(5, 10)
 print(hola)
-print(hola.grid)
