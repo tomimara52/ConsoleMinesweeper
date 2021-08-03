@@ -7,6 +7,7 @@ from time import sleep
 class MineField:
     def __init__(self, size, n_bombs):
         self.size = size
+        self.digged = 0
         self.n_bombs = n_bombs
         self.grid = [[None for j in range(size)] for i in range(size)]
         self.grid_mask = [['·' for j in range(size)] for i in range(size)]
@@ -122,11 +123,13 @@ class MineField:
     def dig(self, row, col):
         spot = self.grid[row][col]
         if spot == '*':
-            lose()
+            return False
         elif spot != self.grid_mask[row][col]:
             self.grid_mask[row][col] = spot
+            self.digged += 1
             if (spot == 0):
                 self.clear_zeros(row, col)
+            return True
             
     def clear_zeros(self, row, col):
         if row != 0:
@@ -159,6 +162,13 @@ class MineField:
             if col != self.size-1:
                 if self.grid[row+1][col+1] != '*':
                     self.dig(row+1, col+1)
+                    
+    def mark_spot(self, row, col):
+        spot_mask = self.grid_mask[row][col]
+        if spot_mask == 'X':
+            self.grid_mask[row][col] = '·'
+        elif spot_mask == '·':
+            self.grid_mask[row][col] = 'X'
             
 
 def print_help():
@@ -171,31 +181,43 @@ def print_help():
     
 
 def play(field):        
+    pattern = re.compile(r"^[0-9]+,[0-9]+m?$")
     os.system('cls' if os.name == 'nt' else 'clear')
+    print(field)
     move = 'h'
-    while True:
-        os.system('cls' if os.name == 'nt' else 'clear')
-        print(field)
-        # print(field.__strraw__())
-
-        pattern = re.compile(r"^[0-9]+,[0-9]+m?$")
+    alive = True
+    while alive:
         
+        move = input("Your move ('h' for help, 'q' to quit): ")
+        os.system('cls' if os.name == 'nt' else 'clear')
         
         if move == 'h':
             print_help()
         elif move == 'q':
-            print('Bye!')
+            print('Bye!\n')
+            alive = 'bye'
             break
         elif re.fullmatch(pattern, move):
-                row, column= [int(i) for i in move.strip('m').split(',')]
+                row, column= [int(i)-1 for i in move.strip('m').split(',')]
                 if (row > field.size) |( column > field.size):
-                    print('Invalid coordinates')
+                    print('Invalid coordinates\n')
+                elif move[-1] == 'm':
+                    field.mark_spot(row, column)
                 else:
-                    print('Valid coordinates')
+                    alive = field.dig(row, column)
+                    if field.digged == (field.size**2 - field.n_bombs):
+                        break
         else:
-            print('Invalid input')
+            print('Invalid input\n')
         
-        move = input("Your move ('h' for help, 'q' to quit): ")
+        print(field)
         
-hola = MineField(8, 10)
+    if alive:
+        if alive == True:
+            print("You won, congratulations!!!")
+    else:
+        print("You lost :(")
+        
+
+hola = MineField(5, 10)
 play(hola)
