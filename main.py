@@ -1,4 +1,4 @@
-from random import randint
+from random import randint, choice
 import os
 import re
 from time import sleep
@@ -9,22 +9,50 @@ class MineField:
         self.size = size
         self.n_bombs = n_bombs
         self.grid = [[None for j in range(size)] for i in range(size)]
+        self.grid_mask = [['·' for j in range(size)] for i in range(size)]
         self.plant_bombs()
         self.assign_numbers()
+        self.first_dig()
         
     def __str__(self):
-        _str = '   '
+            
+        _str = '    ';
         
-        for i in range(self.size):
-            _str += str(i+1) + ' '
+        for i in range(1, self.size+1):
+            _str += str(i) + ' '
+            if i < 10:
+                _str += ' '
         _str += '\n'
         
-        _str += ' ' + '―' * (self.size * 2 + 3) + '\n'
+        _str += ' ' + '―' * (self.size * 3 + 3) + '\n'
         
-        for i, row in enumerate(self.grid, 1):
+        for i, row in enumerate(self.grid_mask, 1):
+            if i < 10:
+                _str += ' '
             _str += str(i) + '| '
             for char in row:
-                _str += str(char) + ' '
+                _str += str(char) + '  '
+            _str += '\n'
+        return _str
+    
+    def __strraw__(self):
+            
+        _str = '    ';
+        
+        for i in range(1, self.size+1):
+            _str += str(i) + ' '
+            if i < 10:
+                _str += ' '
+        _str += '\n'
+        
+        _str += ' ' + '―' * (self.size * 3 + 3) + '\n'
+        
+        for i, row in enumerate(self.grid, 1):
+            if i < 10:
+                _str += ' '
+            _str += str(i) + '| '
+            for char in row:
+                _str += str(char) + '  '
             _str += '\n'
         return _str
         
@@ -81,6 +109,57 @@ class MineField:
                             
                 self.grid[row][column] = neighbor_bombs
                 
+    def first_dig(self):
+        zeros = []
+        for row in range(self.size):
+            for column in range(self.size):
+                if self.grid[row][column] == 0:
+                    zeros.append((row, column))
+                    
+        spot_to_dig = choice(zeros)
+        self.dig(spot_to_dig[0], spot_to_dig[1])
+        
+    def dig(self, row, col):
+        spot = self.grid[row][col]
+        if spot == '*':
+            lose()
+        elif spot != self.grid_mask[row][col]:
+            self.grid_mask[row][col] = spot
+            if (spot == 0):
+                self.clear_zeros(row, col)
+            
+    def clear_zeros(self, row, col):
+        if row != 0:
+            if col != 0:
+                if self.grid[row-1][col-1] != '*':
+                    self.dig(row-1, col-1)
+                    
+            if self.grid[row-1][col] != '*':
+                self.dig(row-1, col)
+                
+            if col != self.size-1:
+                if self.grid[row-1][col+1] != '*':
+                    self.dig(row-1, col+1)
+                    
+        if col != 0:
+            if self.grid[row][col-1] != '*':
+                self.dig(row, col-1)
+        if col != self.size-1:
+            if self.grid[row][col+1] != '*':
+                self.dig(row, col+1)
+                
+        if row != self.size-1:
+            if col != 0:
+                if self.grid[row+1][col-1] != '*':
+                    self.dig(row+1, col-1)
+                    
+            if self.grid[row+1][col] != '*':
+                self.dig(row+1, col)
+                
+            if col != self.size-1:
+                if self.grid[row+1][col+1] != '*':
+                    self.dig(row+1, col+1)
+            
 
 def print_help():
     print('――――― Console Minesweeper ―――――')
@@ -91,12 +170,13 @@ def print_help():
     print('\n')
     
 
-def play(field):
+def play(field):        
     os.system('cls' if os.name == 'nt' else 'clear')
     move = 'h'
     while True:
         os.system('cls' if os.name == 'nt' else 'clear')
         print(field)
+        # print(field.__strraw__())
 
         pattern = re.compile(r"^[0-9]+,[0-9]+m?$")
         
@@ -117,5 +197,5 @@ def play(field):
         
         move = input("Your move ('h' for help, 'q' to quit): ")
         
-hola = MineField(5, 10)
+hola = MineField(8, 10)
 play(hola)
