@@ -1,7 +1,6 @@
 from random import randint, choice
 import os
 import re
-from time import sleep
 
 
 class MineField:
@@ -9,10 +8,10 @@ class MineField:
         self.size = size
         self.digged = 0
         self.n_bombs = n_bombs
-        self.grid = [[None for j in range(size)] for i in range(size)]
+        self.grid = [[0 for j in range(size)] for i in range(size)]
         self.grid_mask = [['·' for j in range(size)] for i in range(size)]
         self.plant_bombs()
-        self.assign_numbers()
+        # self.assign_numbers()
         self.first_dig()
         
     def __str__(self):
@@ -35,27 +34,6 @@ class MineField:
                 _str += str(char) + '  '
             _str += '\n'
         return _str
-    
-    def __strraw__(self):
-            
-        _str = '    ';
-        
-        for i in range(1, self.size+1):
-            _str += str(i) + ' '
-            if i < 10:
-                _str += ' '
-        _str += '\n'
-        
-        _str += ' ' + '―' * (self.size * 3 + 3) + '\n'
-        
-        for i, row in enumerate(self.grid, 1):
-            if i < 10:
-                _str += ' '
-            _str += str(i) + '| '
-            for char in row:
-                _str += str(char) + '  '
-            _str += '\n'
-        return _str
         
     def plant_bombs(self):
         bombs_planted = 0
@@ -67,48 +45,43 @@ class MineField:
                 continue
             
             self.grid[row][column] = '*'
+            
+            self.fill_neighbors(row, column)
+                        
             bombs_planted += 1
             
-    def assign_numbers(self):
-        for row in range(self.size):
-            for column in range(self.size):
-                if self.grid[row][column] == '*':
-                    continue
-                
-                neighbor_bombs = 0
-                
-                if row != 0:
-                    if column != 0:
-                        if self.grid[row-1][column-1] == '*':
-                            neighbor_bombs += 1
-                            
-                    if self.grid[row-1][column] == '*':
-                        neighbor_bombs += 1
-                        
-                    if column != self.size-1:
-                        if self.grid[row-1][column+1] == '*':
-                            neighbor_bombs += 1
-                            
+    def fill_neighbors(self, row, column):
+            if row != 0:
                 if column != 0:
-                    if self.grid[row][column-1] == '*':
-                        neighbor_bombs += 1
+                    if self.grid[row-1][column-1] != '*':
+                        self.grid[row-1][column-1] += 1
+                        
+                if self.grid[row-1][column] != '*':
+                    self.grid[row-1][column] += 1
+                    
                 if column != self.size-1:
-                    if self.grid[row][column+1] == '*':
-                        neighbor_bombs += 1
+                    if self.grid[row-1][column+1] != '*':
+                        self.grid[row-1][column+1] += 1
                         
-                if row != self.size-1:
-                    if column != 0:
-                        if self.grid[row+1][column-1] == '*':
-                            neighbor_bombs += 1
-                            
-                    if self.grid[row+1][column] == '*':
-                        neighbor_bombs += 1
+            if column != 0:
+                if self.grid[row][column-1] != '*':
+                    self.grid[row][column-1] += 1
+                    
+            if column != self.size-1:
+                if self.grid[row][column+1] != '*':
+                    self.grid[row][column+1] += 1
+                    
+            if row != self.size-1:
+                if column != 0:
+                    if self.grid[row+1][column-1] != '*':
+                        self.grid[row+1][column-1] += 1
                         
-                    if column != self.size-1:
-                        if self.grid[row+1][column+1] == '*':
-                            neighbor_bombs += 1
-                            
-                self.grid[row][column] = neighbor_bombs
+                if self.grid[row+1][column] != '*':
+                    self.grid[row+1][column] += 1
+                    
+                if column != self.size-1:
+                    if self.grid[row+1][column+1] != '*':
+                        self.grid[row+1][column+1] += 1
                 
     def first_dig(self):
         zeros = []
@@ -134,34 +107,27 @@ class MineField:
     def clear_zeros(self, row, col):
         if row != 0:
             if col != 0:
-                if self.grid[row-1][col-1] != '*':
-                    self.dig(row-1, col-1)
+                self.dig(row-1, col-1)
                     
-            if self.grid[row-1][col] != '*':
-                self.dig(row-1, col)
+            self.dig(row-1, col)
                 
             if col != self.size-1:
-                if self.grid[row-1][col+1] != '*':
-                    self.dig(row-1, col+1)
+                self.dig(row-1, col+1)
                     
         if col != 0:
-            if self.grid[row][col-1] != '*':
-                self.dig(row, col-1)
+            self.dig(row, col-1)
+            
         if col != self.size-1:
-            if self.grid[row][col+1] != '*':
-                self.dig(row, col+1)
+            self.dig(row, col+1)
                 
         if row != self.size-1:
             if col != 0:
-                if self.grid[row+1][col-1] != '*':
-                    self.dig(row+1, col-1)
+                self.dig(row+1, col-1)
                     
-            if self.grid[row+1][col] != '*':
-                self.dig(row+1, col)
+            self.dig(row+1, col)
                 
             if col != self.size-1:
-                if self.grid[row+1][col+1] != '*':
-                    self.dig(row+1, col+1)
+                self.dig(row+1, col+1)
                     
     def mark_spot(self, row, col):
         spot_mask = self.grid_mask[row][col]
@@ -169,6 +135,12 @@ class MineField:
             self.grid_mask[row][col] = '·'
         elif spot_mask == '·':
             self.grid_mask[row][col] = 'X'
+            
+    def show_bombs(self):
+        for row in range(self.size):
+            for column in range(self.size):
+                if self.grid[row][column] == '*':
+                    self.grid_mask[row][column] = '*'
             
 
 def print_help():
@@ -214,10 +186,14 @@ def play(field):
         
     if alive:
         if alive == True:
+            print(field)
             print("You won, congratulations!!!")
     else:
+        os.system('cls' if os.name == 'nt' else 'clear')
+        field.show_bombs()
+        print(field)
         print("You lost :(")
         
 
-hola = MineField(5, 10)
-play(hola)
+field = MineField(5, 6)
+play(field)
